@@ -1,15 +1,21 @@
+require 'telegram/bot'
 require 'selenium-webdriver'
 
 class Catcher
   START_URL = 'https://otv.verwalt-berlin.de/ams/TerminBuchen'.freeze
   BOOK_TERMIN = 'Termin buchen'.freeze
   NEXT_BUTTON = 'applicationForm:managedForm:proceed'.freeze
+  TG_BOT='5465276324:AAEmw_hjLCh6FIPhQIrSTUeSFSDVcmh_1rs'.freeze
 
   def initialize
     @browser = Selenium::WebDriver.for :chrome
   end
 
   def perform
+    if [0, 25, 48].include?(Time.now.min)
+      Telegram::Bot::Client.run(TG_BOT) { |b| b.api.send_message(chat_id: 147775599, text: 'Im working') }
+    end
+
     if Rails.cache.fetch(:termin_url).present?
       main_flow
     else
@@ -101,8 +107,10 @@ class Catcher
     if error&.length > 50
       puts "No slots"
     else
-      # browser.save pdf
-      "BOT NOTIFY. Link #{browser.current_url}"
+      browser.save_screenshot("#{Time.now.to_i}.png")
+      Telegram::Bot::Client.run(TG_BOT) { |b| b.api.send_message(chat_id: 147775599, text: browser.current_url) }
+      Telegram::Bot::Client.run(TG_BOT) { |b| b.api.send_message(chat_id: 762828011, text: browser.current_url) }
+
       sleep(600)
     end
   end
