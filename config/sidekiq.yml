@@ -1,0 +1,6 @@
+:concurrency: 1
+
+:schedule:
+  catcher_job:
+    cron: '*/1 * * * *'
+    class: CatcherJob
