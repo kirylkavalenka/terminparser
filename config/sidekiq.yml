@@ -4,3 +4,6 @@
   catcher_job:
     cron: '*/1 * * * *'
     class: CatcherJob
+  half_catcher_job:
+    cron: '*/1 * * * *'
+    class: HalfCatcherJob

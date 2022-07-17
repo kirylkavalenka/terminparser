@@ -12,7 +12,7 @@ class Catcher
   end
 
   def perform
-    if [0, 25, 48].include?(Time.now.min)
+    if [0, 25, 45].include?(Time.now.min)
       Telegram::Bot::Client.run(TG_BOT) { |b| b.api.send_message(chat_id: 147775599, text: 'Im working') }
     end
 
@@ -31,11 +31,11 @@ class Catcher
 
   def main_flow
     browser.get(Rails.cache.fetch(:termin_url))
-    sleep(rand(10..13))
+    sleep(rand(5..9))
 
     click_next_button
 
-    sleep(15)
+    sleep(10)
     check_response
   end
 
