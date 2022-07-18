@@ -7,13 +7,16 @@ class Catcher
   NEXT_BUTTON = 'applicationForm:managedForm:proceed'.freeze
   TG_BOT='5465276324:AAEmw_hjLCh6FIPhQIrSTUeSFSDVcmh_1rs'.freeze
 
-  def initialize
+  def initialize(notify: false)
+    @notify = notify
     @browser = Selenium::WebDriver.for :chrome
   end
 
   def perform
-    if [0, 25, 45].include?(Time.now.min)
-      Telegram::Bot::Client.run(TG_BOT) { |b| b.api.send_message(chat_id: 147775599, text: 'Im working') }
+    if [0].include?(Time.now.min)
+      Telegram::Bot::Client.run(TG_BOT) do |b|
+        b.api.send_message(chat_id: 147775599, text: 'Im working')
+      end if notify
     end
 
     if Rails.cache.fetch(:termin_url).present?
@@ -27,15 +30,15 @@ class Catcher
 
   private
 
-  attr_reader :browser
+  attr_reader :browser, :notify
 
   def main_flow
     browser.get(Rails.cache.fetch(:termin_url))
-    sleep(rand(5..9))
+    sleep(rand(7..9))
 
     click_next_button
 
-    sleep(10)
+    sleep(17)
     check_response
   end
 
@@ -102,16 +105,23 @@ class Catcher
   def check_response
     Rails.cache.write(:termin_url, browser.current_url)
 
-    error = browser.find_element(:class, 'errorMessage')&.text
+    current_page = browser.find_element(:class, 'antcl_active')&.text
 
-    if error&.length > 50
-      puts "No slots"
+    if current_page.include?('Terminauswahl')
+      proceed_time_slots
     else
-      browser.save_screenshot("#{Time.now.to_i}.png")
-      Telegram::Bot::Client.run(TG_BOT) { |b| b.api.send_message(chat_id: 147775599, text: browser.current_url) }
-      Telegram::Bot::Client.run(TG_BOT) { |b| b.api.send_message(chat_id: 762828011, text: browser.current_url) }
-
-      sleep(600)
+      puts "No slots"
     end
+  end
+
+    #error = browser.find_element(:class, 'errorMessage')&.text
+  def proceed_time_slots
+    sleep(4)
+    browser.save_screenshot("#{Time.now.to_i}.png")
+    Telegram::Bot::Client.run(TG_BOT) { |b| b.api.send_message(chat_id: 147775599, text: browser.current_url) }
+    Telegram::Bot::Client.run(TG_BOT) { |b| b.api.send_message(chat_id: 762828011, text: browser.current_url) }
+
+    click_next_button
+    sleep(600)
   end
 end
